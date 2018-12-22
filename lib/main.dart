@@ -22,24 +22,14 @@ class RandomWords extends StatefulWidget {
 class RandomWordsState extends State<RandomWords> {
   final _suggestions = List<WordPair>();
   final _saved = Set<WordPair>();
-  final _biggerFont = const TextStyle(fontSize: 18.0);
 
-  Widget _buildSuggestions() {
-    return ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemBuilder: (context, i) {
-          if (i.isOdd) return Divider();
-          final index = i ~/ 2;
-          if (index >= _suggestions.length)
-            _suggestions.addAll(generateWordPairs().take(10));
-          return _buildRow(_suggestions[index]);
-        });
-  }
+  Widget _buildText(WordPair pair) =>
+      Text(pair.asPascalCase, style: const TextStyle(fontSize: 18.0));
 
   Widget _buildRow(WordPair pair) {
     final alreadySaved = _saved.contains(pair);
     return ListTile(
-      title: Text(pair.asPascalCase, style: _biggerFont),
+      title: _buildText(pair),
       trailing: Icon(alreadySaved ? Icons.favorite : Icons.favorite_border,
           color: alreadySaved ? Colors.red : null),
       onTap: () {
@@ -53,38 +43,38 @@ class RandomWordsState extends State<RandomWords> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Startup Name Generator"),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.list),
-            onPressed: _pushSaved,
-          )
-        ],
-      ),
-      body: _buildSuggestions(),
-    );
+  Widget _buildSuggestions() {
+    return ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemBuilder: (context, i) {
+          if (i.isOdd) return Divider();
+          final index = i ~/ 2;
+          if (index >= _suggestions.length)
+            _suggestions.addAll(generateWordPairs().take(10));
+          return _buildRow(_suggestions[index]);
+        });
   }
 
   void _pushSaved() {
     Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-      final tiles = _saved.map((pair) => ListTile(
-              title: Text(
-            pair.asPascalCase,
-            style: _biggerFont,
-          )));
+      final tiles = _saved.map((pair) => ListTile(title: _buildText(pair)));
+      final lists =
+          ListTile.divideTiles(context: context, tiles: tiles).toList();
       return new Scaffold(
-        appBar: AppBar(
-          title: const Text("Saved Suggestions"),
-        ),
-        body: ListView(
-          children:
-              ListTile.divideTiles(context: context, tiles: tiles).toList(),
-        ),
+        appBar: AppBar(title: const Text("Saved Suggestions")),
+        body: ListView(children: lists),
       );
     }));
   }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          title: Text("Startup Name Generator"),
+          actions: <Widget>[
+            IconButton(icon: const Icon(Icons.list), onPressed: _pushSaved),
+          ],
+        ),
+        body: _buildSuggestions(),
+      );
 }
